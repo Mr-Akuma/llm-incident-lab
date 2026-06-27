@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+docs/img/_*.png
+docs/img/n_*.png
+.DS_Store

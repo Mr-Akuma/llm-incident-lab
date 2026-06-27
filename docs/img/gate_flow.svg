@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" font-family="'Segoe UI',Inter,Helvetica,Arial,sans-serif">
+  <defs>
+    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b2029"/><stop offset="1" stop-color="#12151c"/>
+    </linearGradient>
+    <filter id="sh" x="-30%" y="-30%" width="160%" height="200%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+    <marker id="m-cyn" markerWidth="12" markerHeight="12" refX="8" refY="4" orient="auto"><path d="M0,0 L9,4 L0,8 Z" fill="#5cc8df"/></marker>
+    <marker id="m-yel" markerWidth="12" markerHeight="12" refX="8" refY="4" orient="auto"><path d="M0,0 L9,4 L0,8 Z" fill="#f2c97a"/></marker>
+    <marker id="m-grn" markerWidth="12" markerHeight="12" refX="8" refY="4" orient="auto"><path d="M0,0 L9,4 L0,8 Z" fill="#9ee37d"/></marker>
+    <marker id="m-red" markerWidth="12" markerHeight="12" refX="8" refY="4" orient="auto"><path d="M0,0 L9,4 L0,8 Z" fill="#ff6b7a"/></marker>
+    <marker id="m-dim" markerWidth="12" markerHeight="12" refX="8" refY="4" orient="auto"><path d="M0,0 L9,4 L0,8 Z" fill="#7a8696"/></marker>
+  </defs>
+
+  <rect width="1200" height="760" fill="#0b0d12"/>
+  <text x="60" y="52" fill="#fff" font-size="30" font-weight="800" letter-spacing="-.5">The gate: one decision, two outcomes</text>
+
+  <!-- top: request -->
+  <g filter="url(#sh)"><rect x="410" y="78" width="380" height="58" rx="14" fill="url(#card)" stroke="#5cc8df" stroke-width="2.5"/></g>
+  <text x="600" y="114" text-anchor="middle" fill="#fff" font-size="19" font-weight="600">model requests a tool call</text>
+  <line x1="600" y1="136" x2="600" y2="172" stroke="#7a8696" stroke-width="3" marker-end="url(#m-dim)"/>
+
+  <!-- decision: safe? -->
+  <g filter="url(#sh)"><rect x="410" y="174" width="380" height="58" rx="14" fill="url(#card)" stroke="#f2c97a" stroke-width="2.5"/></g>
+  <text x="600" y="210" text-anchor="middle" fill="#fff" font-size="19" font-weight="600">is it a SAFE (read-only) tool?</text>
+
+  <!-- yes -> run freely (left) -->
+  <g filter="url(#sh)"><rect x="70" y="175" width="220" height="56" rx="14" fill="url(#card)" stroke="#9ee37d" stroke-width="2.5"/></g>
+  <text x="180" y="209" text-anchor="middle" fill="#9ee37d" font-size="18" font-weight="700">run it · no gate</text>
+  <line x1="408" y1="203" x2="294" y2="203" stroke="#9ee37d" stroke-width="3" marker-end="url(#m-grn)"/>
+  <text x="350" y="190" text-anchor="middle" fill="#9ee37d" font-size="14">yes</text>
+
+  <!-- no · privileged -> down and split -->
+  <line x1="600" y1="232" x2="600" y2="288" stroke="#ff6b7a" stroke-width="3"/>
+  <text x="616" y="266" fill="#ff6b7a" font-size="15">no · privileged</text>
+  <line x1="320" y1="288" x2="880" y2="288" stroke="#ff6b7a" stroke-width="3"/>
+  <line x1="320" y1="288" x2="320" y2="344" stroke="#ff6b7a" stroke-width="3" marker-end="url(#m-red)"/>
+  <line x1="880" y1="288" x2="880" y2="324" stroke="#9ee37d" stroke-width="3" marker-end="url(#m-grn)"/>
+
+  <!-- column headers (above the split line so arrows stay clear) -->
+  <text x="320" y="280" text-anchor="middle" fill="#ff6b7a" font-size="17" font-weight="800" letter-spacing=".05em">VULNERABLE HARNESS</text>
+  <text x="880" y="280" text-anchor="middle" fill="#9ee37d" font-size="17" font-weight="800" letter-spacing=".05em">PATCHED HARNESS</text>
+
+  <!-- VULNERABLE column -->
+  <g filter="url(#sh)"><rect x="160" y="344" width="320" height="58" rx="14" fill="url(#card)" stroke="#ff6b7a" stroke-width="2"/></g>
+  <text x="320" y="380" text-anchor="middle" fill="#fff" font-size="18">approval_note in the input?</text>
+  <line x1="320" y1="402" x2="320" y2="446" stroke="#ff6b7a" stroke-width="3" marker-end="url(#m-red)"/>
+  <text x="338" y="430" fill="#ff6b7a" font-size="14">yes (forged)</text>
+  <g filter="url(#sh)"><rect x="160" y="448" width="320" height="58" rx="14" fill="#2a1418" stroke="#ff6b7a" stroke-width="2.5"/></g>
+  <text x="320" y="484" text-anchor="middle" fill="#ff6b7a" font-size="18" font-weight="800">RUN - attacker wins</text>
+
+  <!-- PATCHED column -->
+  <g filter="url(#sh)"><rect x="720" y="324" width="320" height="54" rx="14" fill="url(#card)" stroke="#9ee37d" stroke-width="2"/></g>
+  <text x="880" y="358" text-anchor="middle" fill="#fff" font-size="17">strip model's approval_note</text>
+  <line x1="880" y1="378" x2="880" y2="414" stroke="#7a8696" stroke-width="3" marker-end="url(#m-dim)"/>
+
+  <g filter="url(#sh)"><rect x="720" y="416" width="320" height="54" rx="14" fill="url(#card)" stroke="#9ee37d" stroke-width="2"/></g>
+  <text x="880" y="450" text-anchor="middle" fill="#fff" font-size="17">caller role + tenant OK?</text>
+  <line x1="880" y1="470" x2="880" y2="506" stroke="#7a8696" stroke-width="3" marker-end="url(#m-dim)"/>
+
+  <g filter="url(#sh)"><rect x="720" y="508" width="320" height="54" rx="14" fill="url(#card)" stroke="#9ee37d" stroke-width="2"/></g>
+  <text x="880" y="542" text-anchor="middle" fill="#fff" font-size="17">out-of-band human approves?</text>
+  <line x1="880" y1="562" x2="880" y2="598" stroke="#9ee37d" stroke-width="3" marker-end="url(#m-grn)"/>
+  <text x="898" y="586" fill="#9ee37d" font-size="14">yes</text>
+
+  <g filter="url(#sh)"><rect x="720" y="600" width="320" height="54" rx="14" fill="#15241a" stroke="#9ee37d" stroke-width="2.5"/></g>
+  <text x="880" y="634" text-anchor="middle" fill="#9ee37d" font-size="18" font-weight="800">RUN - safely</text>
+
+  <text x="880" y="690" text-anchor="middle" fill="#7a8696" font-size="15">any "no" along the way → BLOCKED</text>
+</svg>

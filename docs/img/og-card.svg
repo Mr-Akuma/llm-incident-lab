@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" font-family="'Segoe UI',Inter,Helvetica,Arial,sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b0d12"/><stop offset="1" stop-color="#11151d"/>
+    </linearGradient>
+    <radialGradient id="glow1" cx="85%" cy="8%" r="60%">
+      <stop offset="0" stop-color="#b08cff" stop-opacity="0.20"/><stop offset="1" stop-color="#b08cff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="2%" cy="0%" r="55%">
+      <stop offset="0" stop-color="#5cc8df" stop-opacity="0.20"/><stop offset="1" stop-color="#5cc8df" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="title" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#b9c2d6"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b2029"/><stop offset="1" stop-color="#12151c"/>
+    </linearGradient>
+    <marker id="a-red" markerWidth="10" markerHeight="10" refX="7" refY="3.5" orient="auto"><path d="M0,0 L8,3.5 L0,7 Z" fill="#ff6b7a"/></marker>
+    <marker id="a-yel" markerWidth="10" markerHeight="10" refX="7" refY="3.5" orient="auto"><path d="M0,0 L8,3.5 L0,7 Z" fill="#f2c97a"/></marker>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glow1)"/>
+  <rect width="1200" height="630" fill="url(#glow2)"/>
+
+  <!-- eyebrow -->
+  <g transform="translate(72,84)">
+    <rect x="0" y="0" width="430" height="44" rx="22" fill="#161a22" stroke="#2e3644"/>
+    <circle cx="26" cy="22" r="6" fill="#ff6b7a"/>
+    <text x="46" y="29" fill="#5cc8df" font-size="18" font-weight="700" letter-spacing="2">INCIDENT WALKTHROUGH · LLM SECURITY</text>
+  </g>
+
+  <text x="72" y="240" fill="url(#title)" font-size="82" font-weight="800" letter-spacing="-2">From Chat Box</text>
+  <text x="72" y="330" fill="url(#title)" font-size="82" font-weight="800" letter-spacing="-2">to Cloud Admin</text>
+
+  <text x="74" y="390" fill="#9aa3b2" font-size="27">One polite message turns a help-desk user into a cloud admin.</text>
+
+  <!-- mini flow -->
+  <g transform="translate(72,452)" font-size="19" font-weight="700">
+    <rect x="0" y="0" width="190" height="64" rx="12" fill="url(#card)" stroke="#ff6b7a" stroke-width="2"/>
+    <text x="95" y="39" text-anchor="middle" fill="#fff">USER MSG</text>
+    <line x1="196" y1="32" x2="248" y2="32" stroke="#ff6b7a" stroke-width="3" marker-end="url(#a-red)"/>
+    <rect x="256" y="0" width="190" height="64" rx="12" fill="url(#card)" stroke="#f2c97a" stroke-width="2"/>
+    <text x="351" y="39" text-anchor="middle" fill="#fff">HARNESS</text>
+    <line x1="452" y1="32" x2="504" y2="32" stroke="#f2c97a" stroke-width="3" marker-end="url(#a-yel)"/>
+    <rect x="512" y="0" width="190" height="64" rx="12" fill="url(#card)" stroke="#5cc8df" stroke-width="2"/>
+    <text x="607" y="39" text-anchor="middle" fill="#fff">CLOUD</text>
+  </g>
+
+  <text x="72" y="576" fill="#6b7280" font-size="20" font-family="'JetBrains Mono',monospace">runnable PoC · LLM Threat Atlas companion · mr-akuma.github.io</text>
+</svg>

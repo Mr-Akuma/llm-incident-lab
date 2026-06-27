@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 820" font-family="'Segoe UI',Inter,Helvetica,Arial,sans-serif">
+  <rect width="1200" height="820" fill="#0b0d12"/>
+
+  <text x="60" y="58" fill="#fff" font-size="32" font-weight="800" letter-spacing="-.5">The Lethal Trifecta</text>
+  <text x="60" y="92" fill="#9aa3b2" font-size="19">An agent is dangerous only where all three overlap.</text>
+
+  <!-- circles (screen blend brightens the overlaps) -->
+  <g style="mix-blend-mode:screen">
+    <circle cx="600" cy="280" r="215" fill="#ff6b7a" fill-opacity="0.32" stroke="#ff6b7a" stroke-width="3"/>
+    <circle cx="478" cy="492" r="215" fill="#5cc8df" fill-opacity="0.32" stroke="#5cc8df" stroke-width="3"/>
+    <circle cx="722" cy="492" r="215" fill="#9ee37d" fill-opacity="0.32" stroke="#9ee37d" stroke-width="3"/>
+  </g>
+
+  <!-- labels -->
+  <text x="600" y="180" text-anchor="middle" fill="#ffd6da" font-size="21" font-weight="700">ACCESS TO</text>
+  <text x="600" y="206" text-anchor="middle" fill="#ffd6da" font-size="21" font-weight="700">PRIVATE DATA</text>
+
+  <text x="330" y="612" text-anchor="middle" fill="#c7eef6" font-size="21" font-weight="700">EXPOSED TO</text>
+  <text x="330" y="638" text-anchor="middle" fill="#c7eef6" font-size="21" font-weight="700">UNTRUSTED CONTENT</text>
+
+  <text x="872" y="612" text-anchor="middle" fill="#d6f3c2" font-size="21" font-weight="700">CAN ACT /</text>
+  <text x="872" y="638" text-anchor="middle" fill="#d6f3c2" font-size="21" font-weight="700">EXFILTRATE</text>
+
+  <!-- center -->
+  <text x="600" y="430" text-anchor="middle" fill="#fff" font-size="34" font-weight="800" letter-spacing="1">PWNABLE</text>
+  <text x="600" y="460" text-anchor="middle" fill="#e8ebf2" font-size="16">exploitable agent</text>
+
+  <!-- footnote: map to the lab -->
+  <text x="60" y="788" fill="#7a8696" font-size="16">our lab had all three:  prod secrets / other tenants  ×  a pasted ticket  ×  delete · rotate · shell</text>
+</svg>

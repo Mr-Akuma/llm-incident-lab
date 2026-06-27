@@ -1,0 +1,55 @@
+# Sigma rule — LLM agent privilege escalation / cross-tenant action
+# https://github.com/SigmaHQ/sigma
+#
+# Detects the single correlation that should never be benign in the lab's audit
+# stream: a PRIVILEGED tool call (or an egress fetch) executed in a session
+# whose caller is NOT an admin, against a resource owned by a different tenant.
+#
+# The lab emits one JSON object per tool decision (see harness.Harness._gate ->
+# cloud.log(action="gate", ...)). Point your pipeline at that stream.
+
+title: LLM agent privileged or cross-tenant action by low-privilege caller
+id: 7d1c9b6e-1a2b-4c3d-9e8f-aa11bb22cc33
+status: experimental
+description: >
+  An AI agent executed a privileged (destructive) tool call, or exfiltrated data,
+  in a session driven by a non-admin caller and/or targeting another tenant's
+  resource. This is the tool-choice-manipulation -> approval-bypass -> broken-authz
+  chain (LLM Threat Atlas D/E/F; OWASP LLM06 Excessive Agency).
+references:
+  - https://mr-akuma.github.io/llm-threat-model-full-267-bubble-atlas.html
+  - https://genai.owasp.org/llmrisk/llm062025-excessive-agency/
+author: Mr-Akuma
+date: 2026/06/27
+logsource:
+  product: llm_agent
+  service: tool_audit
+detection:
+  privileged_executed:
+    action: gate
+    tier: 'privileged'
+    decision: 'allow'
+  exfiltration:
+    action: 'egress_fetch'
+  low_priv_caller:
+    role|re: '^(?!admin$).*'      # any role that is not exactly "admin"
+  condition: (privileged_executed and low_priv_caller) or exfiltration
+fields:
+  - ts
+  - caller
+  - role
+  - tenant
+  - tool
+  - target
+  - reason
+falsepositives:
+  - Admin-initiated maintenance (role == admin) — excluded by low_priv_caller.
+  - Legitimate same-tenant cleanup with a real out-of-band approval (the patched
+    harness never reaches 'allow' for these, so an 'allow' here is the signal).
+level: critical
+tags:
+  - attack.privilege_escalation
+  - attack.t1548          # Abuse Elevation Control Mechanism
+  - attack.t1078          # Valid Accounts
+  - attack.exfiltration
+  - attack.t1485          # Data Destruction

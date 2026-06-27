@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" font-family="'Segoe UI',Inter,Helvetica,Arial,sans-serif">
+  <defs>
+    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b2029"/><stop offset="1" stop-color="#12151c"/>
+    </linearGradient>
+    <marker id="s-ink" markerWidth="11" markerHeight="11" refX="8" refY="4" orient="auto"><path d="M0,0 L9,4 L0,8 Z" fill="#cfd6e4"/></marker>
+    <marker id="s-red" markerWidth="11" markerHeight="11" refX="8" refY="4" orient="auto"><path d="M0,0 L9,4 L0,8 Z" fill="#ff6b7a"/></marker>
+    <marker id="s-grn" markerWidth="11" markerHeight="11" refX="8" refY="4" orient="auto"><path d="M0,0 L9,4 L0,8 Z" fill="#9ee37d"/></marker>
+  </defs>
+  <rect width="1200" height="700" fill="#0b0d12"/>
+  <text x="60" y="50" fill="#fff" font-size="28" font-weight="800" letter-spacing="-.5">How the message becomes an action</text>
+
+  <!-- lifelines -->
+  <g>
+    <!-- x centers: Alex 150, Harness 430, Model 670, Judge 880, Cloud 1080 -->
+    <g font-size="17" font-weight="700" text-anchor="middle">
+      <rect x="70"  y="80" width="160" height="46" rx="10" fill="url(#card)" stroke="#5cc8df" stroke-width="2"/><text x="150" y="109" fill="#fff">Alex (support)</text>
+      <rect x="350" y="80" width="160" height="46" rx="10" fill="url(#card)" stroke="#f2c97a" stroke-width="2"/><text x="430" y="109" fill="#fff">Harness</text>
+      <rect x="590" y="80" width="160" height="46" rx="10" fill="url(#card)" stroke="#5cc8df" stroke-width="2"/><text x="670" y="109" fill="#fff">Model</text>
+      <rect x="800" y="80" width="160" height="46" rx="10" fill="url(#card)" stroke="#5cc8df" stroke-width="2"/><text x="880" y="109" fill="#fff">LLM judge</text>
+      <rect x="1000" y="80" width="160" height="46" rx="10" fill="url(#card)" stroke="#ff6b7a" stroke-width="2"/><text x="1080" y="109" fill="#fff">Cloud</text>
+    </g>
+    <g stroke="#2e3644" stroke-width="2" stroke-dasharray="4 6">
+      <line x1="150" y1="126" x2="150" y2="660"/>
+      <line x1="430" y1="126" x2="430" y2="660"/>
+      <line x1="670" y1="126" x2="670" y2="660"/>
+      <line x1="880" y1="126" x2="880" y2="660"/>
+      <line x1="1080" y1="126" x2="1080" y2="660"/>
+    </g>
+  </g>
+
+  <!-- messages -->
+  <g font-size="15.5" fill="#cfd6e4">
+    <line x1="150" y1="170" x2="424" y2="170" stroke="#cfd6e4" stroke-width="2.5" marker-end="url(#s-ink)"/>
+    <text x="160" y="160">forwards the poisoned ticket</text>
+
+    <line x1="430" y1="222" x2="664" y2="222" stroke="#cfd6e4" stroke-width="2.5" marker-end="url(#s-ink)"/>
+    <text x="440" y="212">prompt + tool definitions</text>
+
+    <line x1="670" y1="274" x2="436" y2="274" stroke="#ff6b7a" stroke-width="2.5" marker-end="url(#s-red)"/>
+    <text x="460" y="264" fill="#ff6b7a">"call delete_resource(globex-db)"</text>
+
+    <line x1="430" y1="326" x2="874" y2="326" stroke="#f2c97a" stroke-width="2.5" marker-end="url(#s-ink)"/>
+    <text x="500" y="316" fill="#f2c97a">"was this approved?" (+ the same convo)</text>
+
+    <line x1="880" y1="378" x2="436" y2="378" stroke="#ff6b7a" stroke-width="2.5" stroke-dasharray="6 5" marker-end="url(#s-red)"/>
+    <text x="560" y="368" fill="#ff6b7a">"YES" - fooled by the injection</text>
+
+    <line x1="430" y1="430" x2="1074" y2="430" stroke="#ff6b7a" stroke-width="3" marker-end="url(#s-red)"/>
+    <text x="600" y="420" fill="#ff6b7a" font-weight="700">DELETE globex-db  (irreversible)</text>
+
+    <line x1="1080" y1="482" x2="436" y2="482" stroke="#cfd6e4" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#s-ink)"/>
+    <text x="700" y="472">deleted</text>
+
+    <line x1="430" y1="534" x2="156" y2="534" stroke="#9ee37d" stroke-width="2.5" marker-end="url(#s-grn)"/>
+    <text x="180" y="524" fill="#9ee37d">"we're looking into the slowness!" (normal reply)</text>
+  </g>
+
+  <!-- note -->
+  <g transform="translate(610,572)">
+    <rect x="0" y="0" width="520" height="74" rx="12" fill="#2a1418" stroke="#ff6b7a" stroke-width="1.5"/>
+    <text x="20" y="30" fill="#ff6b7a" font-size="15.5" font-weight="700">The judge reads the same attacker-controlled text</text>
+    <text x="20" y="54" fill="#cfd6e4" font-size="14.5">an approval check that consumes untrusted input is just another victim.</text>
+  </g>
+</svg>

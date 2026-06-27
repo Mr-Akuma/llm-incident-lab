@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" font-family="'Segoe UI',Inter,Helvetica,Arial,sans-serif">
+  <rect width="1200" height="760" fill="#0b0d12"/>
+  <text x="60" y="52" fill="#fff" font-size="28" font-weight="800" letter-spacing="-.5">Defense in depth - any one layer can fail</text>
+  <text x="60" y="84" fill="#9aa3b2" font-size="18">Layers from "treat input as hostile" (outer) to the irreversible action (core).</text>
+
+  <!-- concentric rings, centered (600,430) -->
+  <g>
+    <circle cx="600" cy="430" r="300" fill="#5cc8df" fill-opacity="0.05" stroke="#5cc8df" stroke-width="2"/>
+    <circle cx="600" cy="430" r="250" fill="#9ee37d" fill-opacity="0.05" stroke="#9ee37d" stroke-width="2"/>
+    <circle cx="600" cy="430" r="200" fill="#f2c97a" fill-opacity="0.06" stroke="#f2c97a" stroke-width="2"/>
+    <circle cx="600" cy="430" r="150" fill="#f2a97a" fill-opacity="0.07" stroke="#f2a97a" stroke-width="2"/>
+    <circle cx="600" cy="430" r="100" fill="#ff6b7a" fill-opacity="0.09" stroke="#ff6b7a" stroke-width="2"/>
+    <circle cx="600" cy="430" r="54"  fill="#2a1418" stroke="#ff6b7a" stroke-width="2.5"/>
+  </g>
+
+  <!-- labels at the top of each ring -->
+  <g text-anchor="middle" font-weight="700">
+    <text x="600" y="156" fill="#5cc8df" font-size="18">1 · Treat all context as untrusted</text>
+    <text x="600" y="206" fill="#9ee37d" font-size="18">2 · Tier tools - safe vs destructive</text>
+    <text x="600" y="256" fill="#f2c97a" font-size="18">3 · Out-of-band approval</text>
+    <text x="600" y="306" fill="#f2a97a" font-size="18">4 · Authorization (role + tenant)</text>
+    <text x="600" y="356" fill="#ff6b7a" font-size="18">5 · Reversibility &amp; rate limits</text>
+    <text x="600" y="426" fill="#ff8d99" font-size="15" font-weight="800">the irreversible</text>
+    <text x="600" y="446" fill="#ff8d99" font-size="15" font-weight="800">action</text>
+  </g>
+
+  <!-- audit/alert wraps everything -->
+  <text x="600" y="752" text-anchor="middle" fill="#9aa3b2" font-size="16">6 · Audit &amp; alert - structured logs + the privileged × low-priv × cross-tenant rule (wraps every layer)</text>
+</svg>
