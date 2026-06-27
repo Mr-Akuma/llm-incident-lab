@@ -8,7 +8,7 @@
 
 > **TL;DR.** A help-desk AI was given real cloud tools and an "ask another AI to approve
 > risky actions" gate. A single support ticket, carrying a hidden instruction, steered
-> the agent into rotating a production secret and deleting another tenant's database -
+> the agent into rotating a production secret and deleting another tenant's database,
 > and the same instruction fooled the approval AI. The bug isn't the model; it's the
 > **harness** trusting model output and an injectable judge. The fix: authorization the
 > model can't influence + out-of-band human approval for irreversible actions. It's all
@@ -113,8 +113,8 @@ Confidentiality **+ integrity + availability**, irreversible - the Critical band
 ## Why this is inevitable (a smarter model won't save you)
 
 It's the **confused deputy** (Norm Hardy, 1988): a program with authority, tricked by
-someone with none. An LLM agent is the most confusable deputy ever built - it holds your
-keys, is trained to be helpful, and can't tell whose instruction it's following.
+someone with none. An LLM agent is about as confusable a deputy as you can build - it holds
+your keys, is trained to be helpful, and can't tell whose instruction it's following.
 
 The model **literally** can't separate data from instructions: one token channel;
 instruction-following is the trained product; RLHF made it eager; compliance generalizes

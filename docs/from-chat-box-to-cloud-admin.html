@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>From Chat Box to Cloud Admin - an LLM agent privilege-escalation, deep-dive + PoC</title>
-<meta name="description" content="An in-depth, reproducible walkthrough of an LLM-agent privilege-escalation incident: the agentic loop, the trust boundary, indirect prompt injection, a full step-by-step proof of concept, root-cause analysis, detection, and defense-in-depth remediation - mapped to the LLM Threat Atlas.">
+<meta name="description" content="An in-depth, reproducible walkthrough of an LLM-agent privilege-escalation incident: the agentic loop, the trust boundary, indirect prompt injection, a full step-by-step proof of concept, root-cause analysis, detection, and defense-in-depth remediation, mapped to the LLM Threat Atlas.">
 <link rel="canonical" href="https://mr-akuma.github.io/from-chat-box-to-cloud-admin.html">
 <meta property="og:type" content="article">
 <meta property="og:title" content="From Chat Box to Cloud Admin">
-<meta property="og:description" content="How one polite message turns a help-desk user into a cloud admin - an LLM-agent privilege-escalation incident, with a runnable proof of concept.">
+<meta property="og:description" content="How one polite message turns a help-desk user into a cloud admin. An LLM-agent privilege-escalation incident, with a runnable proof of concept.">
 <meta property="og:image" content="https://mr-akuma.github.io/img/og-card.png">
 <meta property="og:url" content="https://mr-akuma.github.io/from-chat-box-to-cloud-admin.html">
 <meta name="twitter:card" content="summary_large_image">
@@ -177,12 +177,12 @@
 <header>
   <span class="eyebrow"><span class="dot"></span> Incident walkthrough &middot; LLM security</span>
   <h1>From Chat Box to Cloud Admin</h1>
-  <p class="sub">How one polite message turns a help-desk user into a cloud admin - the
+  <p class="sub">How one polite message turns a help-desk user into a cloud admin. The
   deep dive, with a fully reproducible proof of concept.</p>
 </header>
 
 <p class="lead">A single chat message turns a low-privilege help-desk user into a cloud
-administrator - rotating a production master key and deleting another customer's
+administrator, rotating a production master key and deleting another customer's
 database. No jailbreak. No stolen password. No attack on the model's weights. Just
 text, sent to an AI assistant that was trusted with real tools.</p>
 
@@ -190,7 +190,7 @@ text, sent to an AI assistant that was trusted with real tools.</p>
   <b>TL;DR.</b> A help-desk AI was given real cloud tools and an "ask another AI to
   approve risky actions" gate. A single support ticket, carrying a hidden instruction,
   steered the agent into rotating a production secret and deleting another tenant's
-  database - and the same instruction fooled the approval AI. The bug isn't the model;
+  database, and the same instruction fooled the approval AI. The bug isn't the model;
   it's the <b>harness</b> trusting model output and an injectable judge. The fix:
   authorization the model can't influence + out-of-band human approval for
   irreversible actions. The whole thing is a runnable lab.
@@ -447,8 +447,8 @@ and each one compounding the last. Here's the whole exchange, in order:</p>
 <h4 id="cause-d"><span class="tag d">D</span> &nbsp;Tool-choice manipulation</h4>
 <p>The loop ran whatever tool the model picked, with no notion that
 <code>delete_resource</code> is categorically different from <code>list_resources</code>.
-Untrusted text selected a privileged action. <b>Fix direction:</b> the harness must
-treat the privileged tier as a security event, not a function call.</p>
+Untrusted text selected a privileged action. The harness has to treat the privileged
+tier as a security event, not a function call.</p>
 
 <h4 id="cause-e"><span class="tag e">E</span> &nbsp;Approval-gate bypass</h4>
 <p>There <em>was</em> an approval check - the harness asked an LLM judge "was this
@@ -461,8 +461,8 @@ authz, an approver you can talk to defeats the gate.</p>
 <p>Nothing checked whether <em>this caller</em> was entitled to the action.
 A <code>support</code>/<code>acme</code> session rotated a prod secret and destroyed
 <code>globex</code>'s data, and no code asked "may Alex do this, to this resource?"
-<b>Fix direction:</b> enforce caller role and resource ownership before execution -
-the two checks the lab implements as <code>_allowed()</code>.</p>
+Enforce caller role and resource ownership before execution; in the lab that's the
+two checks in <code>_allowed()</code>.</p>
 
 <div class="callout red"><b>Why it's worse than a leak.</b> A data-disclosure bug costs
 you confidentiality. This chain costs confidentiality <em>and</em> integrity (a
@@ -480,8 +480,7 @@ prompt-only vectors.</blockquote>
 
 <h2 id="why">Why this keeps happening - and why a smarter model won't save you</h2>
 
-<p>Here's the part that should change how you think about every AI feature you ship.
-This isn't a quirk of our toy lab. It's a structural property of how language models
+<p>This isn't a quirk of the toy lab. It's a structural property of how language models
 work, and it has a name that predates LLMs by 35 years.</p>
 
 <h3>The world's most confusable deputy</h3>
@@ -492,11 +491,10 @@ their behalf. The classic example is a compiler that can write to a protected bi
 file; a user who can't touch that file simply asks the compiler to write its output
 there, and the compiler, wielding its own rights, complies.</p>
 
-<p>An LLM agent is the most confusable deputy ever built. It holds your keys. It is
-<em>trained to be helpful</em>. And - this is the killer - it cannot tell whose
-instruction it is following. The attacker doesn't need credentials. They just need to
-phrase a sentence so the deputy wields its keys for them. That's the entire incident in
-one classical idea.</p>
+<p>An LLM agent is about as confusable a deputy as you can build. It holds your keys,
+it is <em>trained to be helpful</em>, and it cannot tell whose instruction it is
+following. The attacker doesn't need credentials; they need to phrase a sentence so the
+deputy wields its keys for them. That's the whole incident, in one idea from 1988.</p>
 
 <h3>Why the model literally cannot tell data from instructions</h3>
 
@@ -519,7 +517,7 @@ can't, and four facts explain why - none of which a smarter model fixes:</p>
   feature of tokens.</li>
 </ol>
 
-<div class="callout cyn"><b>The SQL-injection parallel that ends the debate.</b> We beat
+<div class="callout cyn"><b>The SQL-injection parallel.</b> We beat
 SQL injection with <em>parameterized queries</em> - a hard, mechanical boundary that
 keeps code and data in separate lanes the database can't confuse. <b>There is no
 parameterized query for natural language.</b> No production technique today gives an LLM
@@ -564,7 +562,7 @@ action you can't undo.</p>
   <tr><td><b>Persistent memory</b></td><td>Inject once; the agent writes it to long-term memory.</td><td>It re-fires every future session - a backdoor that survives the conversation.</td></tr>
 </table>
 
-<div class="callout red"><b>The one-sentence version that makes people sit up:</b> the
+<div class="callout red"><b>The one-sentence version:</b> the
 instant an LLM can both <em>read</em> something an attacker controls and <em>do</em>
 something you'd regret, you have shipped remote code execution with a natural-language
 exploit format - and the exploit is a polite request.</div>
@@ -626,7 +624,7 @@ ALERT <span class="k">when</span> tool.tier == <span class="s">"privileged"</spa
   <span class="k">and</span> tool.target.tenant != session.caller.tenant  <span class="cmt"># cross-tenant</span></pre>
 
 <div class="callout">Privileged action &times; low-privilege caller &times; cross-tenant
-target. That triple is the single highest-value alert to wire up first - it has no
+target. That triple is the highest-value alert to wire up first; it has no
 benign explanation. Pair it with full structured logging of every tool call (caller,
 role, tenant, tool, args, decision, approver) so the audit trail can actually answer
 "who approved this, and how."</div>
@@ -768,8 +766,7 @@ approval.</div>
 
 <h3>The Three Laws of Agent Security</h3>
 
-<p>If you remember nothing else from this post, remember these. They're the whole thing,
-compressed:</p>
+<p>Three rules that capture all of the above:</p>
 
 <div class="callout cyn">
   <b>I. The model may propose; only the harness may dispose.</b><br>
@@ -801,8 +798,8 @@ compressed:</p>
 
 <h2 id="atlas">The Atlas map</h2>
 
-<p>Finally, the move that ties this to the resource specifically - every step mapped to
-the Atlas leaf and the frameworks it cross-walks (OWASP LLM 2025, MITRE ATLAS/ATT&amp;CK).</p>
+<p>Every step of the chain, mapped to its Atlas domain and the frameworks it cross-walks
+(OWASP LLM 2025, MITRE ATLAS/ATT&amp;CK).</p>
 
 <table>
   <tr><th>#</th><th>Step</th><th>Atlas domain</th><th>OWASP LLM</th><th>MITRE</th><th>Closing control</th></tr>
