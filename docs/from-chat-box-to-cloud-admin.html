@@ -20,7 +20,7 @@
  "headline":"From Chat Box to Cloud Admin",
  "description":"An LLM-agent privilege-escalation incident, walked through step by step, with a reproducible proof of concept.",
  "author":{"@type":"Person","name":"Mr-Akuma"},
- "keywords":"LLM security, prompt injection, AI agent, privilege escalation, excessive agency, OWASP LLM, MITRE ATLAS",
+ "keywords":"prompt injection, AI agent, privilege escalation, excessive agency, OWASP LLM, MITRE ATLAS",
  "image":"https://mr-akuma.github.io/img/og-card.png",
  "mainEntityOfPage":"https://mr-akuma.github.io/from-chat-box-to-cloud-admin.html"}
 </script>
@@ -175,7 +175,6 @@
 <div class="wrap">
 
 <header>
-  <span class="eyebrow"><span class="dot"></span> Incident walkthrough &middot; LLM security</span>
   <h1>From Chat Box to Cloud Admin</h1>
   <p class="sub">How one polite message turns a help-desk user into a cloud admin. The
   deep dive, with a fully reproducible proof of concept.</p>
@@ -183,8 +182,8 @@
 
 <p class="lead">A single chat message turns a low-privilege help-desk user into a cloud
 administrator, rotating a production master key and deleting another customer's
-database. No jailbreak. No stolen password. No attack on the model's weights. Just
-text, sent to an AI assistant that was trusted with real tools.</p>
+database. There was no jailbreak, no stolen password, and no attack on the model's
+weights — only text, sent to an AI assistant that had been trusted with real tools.</p>
 
 <div class="callout cyn">
   <b>TL;DR.</b> A help-desk AI was given real cloud tools and an "ask another AI to
@@ -193,7 +192,8 @@ text, sent to an AI assistant that was trusted with real tools.</p>
   database, and the same instruction fooled the approval AI. The bug isn't the model;
   it's the <b>harness</b> trusting model output and an injectable judge. The fix:
   authorization the model can't influence + out-of-band human approval for
-  irreversible actions. The whole thing is a runnable lab.
+  irreversible actions. The whole thing is a runnable lab &mdash;
+  <b>repo: <a href="https://github.com/Mr-Akuma/llm-incident-lab">github.com/Mr-Akuma/llm-incident-lab</a></b>.
   <br><br>
   <b>Who this is for:</b> engineers building LLM agents, AppSec/red teams reviewing
   them, and anyone wiring an AI to tools that can change real state.
@@ -206,6 +206,13 @@ complete step-by-step PoC against a small lab you can clone and execute yourself
 take apart the root cause, detection, and a layered fix. Every claim is backed by code
 or terminal output.</p>
 
+<p>Strip it all down and agent security reduces to three rules. I state them in full at
+the end as the <b>Three Laws of Agent Security</b>, but hold the first one from the
+start: <em>the model may propose, but only the harness may dispose.</em> Watch each law
+break in turn through the PoC, and the fix stops looking like a checklist and starts
+looking inevitable - it has to live in the harness, because that's the only place a law
+can be enforced.</p>
+
 <div class="toc">
   <b>Contents</b>
   <ol>
@@ -214,9 +221,9 @@ or terminal output.</p>
     <li><a href="#threat">The threat model, in 60 seconds</a></li>
     <li><a href="#poc">Let's break it - the PoC, step by step</a></li>
     <li><a href="#root">Root cause: three bugs that chain into a disaster</a></li>
-    <li><a href="#why">Why this keeps happening (a smarter model won't save you)</a></li>
-    <li><a href="#worse">It gets worse: the variants that should keep you up at night</a></li>
-    <li><a href="#detect">Catching it: what your logs should scream</a></li>
+    <li><a href="#why">Why this keeps happening - and why a smarter model won't save you</a></li>
+    <li><a href="#worse">It gets worse: the variants to plan for</a></li>
+    <li><a href="#detect">Catching it: what to log and alert on</a></li>
     <li><a href="#fix">Fixing it for good: defense in depth</a></li>
     <li><a href="#generalize">Now do it on your own stack</a></li>
     <li><a href="#atlas">The Atlas map</a></li>
@@ -252,11 +259,10 @@ messages = [system_prompt, user_message]
         result = run_tool(call.name, call.args)      <span class="cmt"># 4. WE decide to run them</span>
         messages.append(result)                      <span class="cmt"># 5. feed results back, loop</span></pre>
 
-<p>Read step 3 and step 4 again, because the entire incident lives in the gap between
-them. <b>The model never executes anything.</b> It produces a structured request:
+<p>The entire incident lives in the gap between step 3 and step 4.
+<b>The model never executes anything.</b> It produces a structured request:
 "please call <code>delete_resource</code> with <code>name='globex-db'</code>." Your
-code - the <b>harness</b> - is what actually runs it. The model proposes; the harness
-disposes.</p>
+code - the <b>harness</b> - is what actually runs it.</p>
 
 <h3>Tool use, concretely</h3>
 
@@ -269,12 +275,19 @@ they look like this:</p>
  <span class="s">"input_schema"</span>: {<span class="s">"type"</span>:<span class="s">"object"</span>,
    <span class="s">"properties"</span>:{<span class="s">"name"</span>:{<span class="s">"type"</span>:<span class="s">"string"</span>}}, <span class="s">"required"</span>:[<span class="s">"name"</span>]}}</pre>
 
-<p>We deliberately split the tools into two tiers - a distinction the LLM Threat Atlas
-builds its whole Tool-Use domain (D, 55 vectors) around:</p>
+<p>The lab sorts its tools into four tiers, but only one line matters to the gate:
+<em>is this call destructive?</em> The LLM Threat Atlas builds its whole Tool-Use domain
+(D, 55 vectors) around exactly that distinction:</p>
 
 <pre><span class="cmt"># tools.py</span>
-SAFE       = {<span class="s">"list_resources"</span>, <span class="s">"get_status"</span>}              <span class="cmt"># read-only</span>
-PRIVILEGED = {<span class="s">"delete_resource"</span>, <span class="s">"rotate_credentials"</span>, <span class="s">"run_shell"</span>}  <span class="cmt"># destructive</span></pre>
+SAFE       = {<span class="s">"list_resources"</span>, <span class="s">"get_status"</span>}                       <span class="cmt"># read-only</span>
+SENSITIVE  = {<span class="s">"read_secret"</span>}                                       <span class="cmt"># reads secret data (allowed)</span>
+PRIVILEGED = {<span class="s">"delete_resource"</span>, <span class="s">"rotate_credentials"</span>, <span class="s">"run_shell"</span>}  <span class="cmt"># destructive / irreversible</span>
+OUTPUT     = {<span class="s">"render_to_user"</span>}                                    <span class="cmt"># shows content - can cause egress</span></pre>
+
+<p>Keep <code>SENSITIVE</code> and <code>OUTPUT</code> in mind: they look harmless, but
+the exfil variant later turns "read a secret" plus "render some markdown" into a data
+leak with no destructive tool in sight.</p>
 
 <h3>The trust boundary</h3>
 
@@ -367,12 +380,19 @@ cd llm-incident-lab
     <span class="k">if</span> self.backend.judge(self.transcript, call):   <span class="bad"># <-- judge reads attacker text</span>
         <span class="k">return</span> True, <span class="s">"approved by LLM judge (reads attacker text)"</span>
     <span class="k">return</span> True, <span class="s">"no gate (privileged ran unchecked)"</span></pre>
-  <p>This is the pattern everyone is shipping right now: "before a risky action, ask a
-  second LLM whether it's allowed." The fatal flaw is that the judge reads the
-  <em>same conversation</em> the attacker poisoned. The injection that steers the agent
-  also convinces the judge. An approval check that reads attacker-controlled text is not
-  a control - it's another victim. (Run it with <code>--real</code> and a real Claude
-  plays the judge, and is fooled the same way.)</p>
+  <p>Every piece of this gate ships in the wild today. Autonomous loops execute whatever
+  tool the model returns - the whole premise of unattended agents like Auto-GPT in
+  continuous mode, and of the "auto-run" / "YOLO" modes bolted onto today's coding
+  agents. Model-graded "LLM-as-judge" checks, a standard
+  evaluation pattern, get repurposed into approval gates. And per-tenant authorization is
+  the control that quietly never got wired in. A real system is rarely this naked all at
+  once - the lab's contribution is to put all three failures in one harness so you can
+  watch them <em>chain</em> rather than argue about each in isolation.</p>
+  <p>The fatal one is the judge. It reads the <em>same conversation</em> the attacker
+  poisoned, so the injection that steers the agent also convinces the judge. An approval
+  check that reads attacker-controlled text isn't a control at all; it's just one more
+  thing to inject. (Run it with <code>--real</code> and a real Claude plays the judge,
+  fooled the same way.)</p>
 </div>
 
 <div class="step">
@@ -428,8 +448,7 @@ $env:ANTHROPIC_API_KEY = <span class="s">"sk-ant-..."</span>   <span class="cmt"
 python run_incident.py --real         <span class="cmt"># genuine Claude tool-use loop</span></pre>
   <p>Same harness, a real model deciding for itself. A capable model is steered the
   same way, because the flaw isn't the model's judgment - it's that the harness
-  executes whatever comes back. That's the point worth internalizing: you can't patch
-  this by swapping models.</p>
+  executes whatever comes back. You can't patch this by swapping models.</p>
 </div>
 
 <h2 id="root">Root cause: three bugs that chain into a disaster</h2>
@@ -448,27 +467,30 @@ and each one compounding the last. Here's the whole exchange, in order:</p>
 <p>The loop ran whatever tool the model picked, with no notion that
 <code>delete_resource</code> is categorically different from <code>list_resources</code>.
 Untrusted text selected a privileged action. The harness has to treat the privileged
-tier as a security event, not a function call.</p>
+tier as a security event, not a function call. <b>Law I broken:</b> the model proposed,
+and the harness disposed without asking.</p>
 
 <h4 id="cause-e"><span class="tag e">E</span> &nbsp;Approval-gate bypass</h4>
 <p>There <em>was</em> an approval check - the harness asked an LLM judge "was this
 approved?" But the judge reads the same attacker-controlled conversation, so the
 injection convinces it too. Any approval logic that consumes untrusted text is just
 another thing to inject. <b>This is the load-bearing flaw:</b> even with tiering and
-authz, an approver you can talk to defeats the gate.</p>
+authz, an approver you can talk to defeats the gate. <b>Law II broken:</b> the approval
+came straight from the transcript.</p>
 
 <h4 id="cause-f"><span class="tag f">F</span> &nbsp;Broken authorization</h4>
 <p>Nothing checked whether <em>this caller</em> was entitled to the action.
 A <code>support</code>/<code>acme</code> session rotated a prod secret and destroyed
 <code>globex</code>'s data, and no code asked "may Alex do this, to this resource?"
 Enforce caller role and resource ownership before execution; in the lab that's the
-two checks in <code>_allowed()</code>.</p>
+two checks in <code>_allowed()</code>. <b>Law II again:</b> identities and entitlements
+have to come from your systems, never the conversation.</p>
 
 <div class="callout red"><b>Why it's worse than a leak.</b> A data-disclosure bug costs
 you confidentiality. This chain costs confidentiality <em>and</em> integrity (a
 rewritten secret) <em>and</em> availability (a deleted database) at once, and it's
 irreversible - the top band of the Atlas's Likelihood&times;Impact scoring. It's the
-concrete proof of the Atlas's thesis:</div>
+concrete proof of its thesis:</div>
 
 <blockquote>A system with one powerful tool may be riskier than a system with dozens of
 prompt-only vectors.</blockquote>
@@ -481,9 +503,9 @@ prompt-only vectors.</blockquote>
 <h2 id="why">Why this keeps happening - and why a smarter model won't save you</h2>
 
 <p>This isn't a quirk of the toy lab. It's a structural property of how language models
-work, and it has a name that predates LLMs by 35 years.</p>
+work, and it has a name that predates today's agents by more than three decades.</p>
 
-<h3>The world's most confusable deputy</h3>
+<h3>A near-perfect confused deputy</h3>
 
 <p>In 1988, Norm Hardy described the <b>confused deputy</b>: a program with legitimate
 authority that an attacker - who has <em>no</em> authority - tricks into misusing it on
@@ -523,8 +545,8 @@ keeps code and data in separate lanes the database can't confuse. <b>There is no
 parameterized query for natural language.</b> No production technique today gives an LLM
 a guaranteed wall between instructions and data. So you cannot fix prompt injection
 <em>inside</em> the model. You fix it in the <em>architecture around</em> the model -
-which is exactly what the harness gate does. Swapping in a smarter model is not a
-patch; it's a new attacker IQ test.</div>
+which is exactly what the harness gate does. A smarter model doesn't patch this; it just
+raises the bar the next attacker has to clear.</div>
 
 <h3>The Lethal Trifecta</h3>
 
@@ -547,10 +569,10 @@ data and your tools, and nobody notices because each leg arrived in a different 
 The fix later in this post doesn't amputate a leg - it puts a hard guard on leg 3 for any
 action you can't undo.</p>
 
-<h2 id="worse">It gets worse: the variants that should keep you up at night</h2>
+<h2 id="worse">It gets worse: the variants to plan for</h2>
 
 <p>Our PoC made a human paste the payload. Real attacks don't bother. Once you accept
-"reading is acting," the escalations write themselves:</p>
+"reading is acting," the escalations follow:</p>
 
 <table>
   <tr><th>Variant</th><th>What changes</th><th>Why it's nastier</th></tr>
@@ -564,8 +586,8 @@ action you can't undo.</p>
 
 <div class="callout red"><b>The one-sentence version:</b> the
 instant an LLM can both <em>read</em> something an attacker controls and <em>do</em>
-something you'd regret, you have shipped remote code execution with a natural-language
-exploit format - and the exploit is a polite request.</div>
+something you'd regret, you have effectively shipped remote code execution whose exploit
+language is plain English.</div>
 
 <p>Two of these are runnable in the lab. <code>--scenario recon</code> shows the
 multi-turn version (safe discovery, then the destructive step). <code>--scenario
@@ -612,11 +634,12 @@ Slack&nbsp;AI data exfiltration via injected instructions (2024), and the EchoLe
 zero-click in Microsoft 365 Copilot (2025). Every one is the same shape as the lab
 above.</p>
 
-<h2 id="detect">Catching it: what your logs should scream</h2>
+<h2 id="detect">Catching it: what to log and alert on</h2>
 
 <p>You don't need anomaly ML for this. You need to log every tool call with its
 session context, then alert on a correlation that is never legitimate. The lab's
-<code>detect()</code> replays exactly what an incident responder would look for:</p>
+<code>detect()</code> replays the privileged actions and exfil events from the audit
+log; here's the correlation worth paging on:</p>
 
 <pre class="cyn"><span class="cmt"># the alert that should have paged someone (pseudo-rule)</span>
 ALERT <span class="k">when</span> tool.tier == <span class="s">"privileged"</span>
@@ -644,7 +667,11 @@ is caught by the next. From outermost to innermost:</p>
   <tr><td><b>6. Audit &amp; alert</b></td><td>Structured logs + the correlation alert above.</td><td>N</td></tr>
 </table>
 
-<p>In the lab, layers 3 and 4 are the patched gate - and the diff is tiny:</p>
+<p>The six layers are just the Three Laws made operational: Law III makes layer 1
+(treat all input as hostile), Law I makes layers 2 and 5 (only the harness disposes, and
+prefer actions you can undo), and Law II makes layers 3 and 4 (approval and authz come
+from your systems). In the lab, layers 3 and 4 are the patched gate - and the diff is
+tiny:</p>
 
 <pre class="grn"><span class="cmt"># harness.py -- PATCHED gate (secure=True)</span>
 <span class="k">if</span> call.name <span class="k">in</span> tools.SAFE:
@@ -681,7 +708,7 @@ ok, why = _allowed(self.caller, call.name, call.args, self.cloud)  <span class="
   <figcaption>Both privileged calls blocked at the role check; the cloud is untouched.</figcaption>
 </figure>
 
-<div class="callout grn">The whole defense fits on a sticky note: <b>reversibility
+<div class="callout grn">The defense reduces to one rule: <b>reversibility
 decides the gate.</b> Read-only tools run freely. Irreversible tools require
 authorization the model cannot influence, <em>plus</em> approval from outside the
 conversation. The model can ask. It can't decide.</div>
@@ -766,7 +793,7 @@ approval.</div>
 
 <h3>The Three Laws of Agent Security</h3>
 
-<p>Three rules that capture all of the above:</p>
+<p>Here they are in full, now that you've watched all three break and then hold:</p>
 
 <div class="callout cyn">
   <b>I. The model may propose; only the harness may dispose.</b><br>
@@ -815,8 +842,8 @@ approval.</div>
 
 <h4>"Isn't this just prompt injection?"</h4>
 <p>Prompt injection is step one. The post is about the <em>consequence chain</em> -
-how an injected instruction becomes an irreversible cloud action. Injection is the
-match; the harness is whether there's gasoline.</p>
+how an injected instruction becomes an irreversible cloud action. The injection is only
+the trigger; the harness decides whether anything actually breaks.</p>
 
 <h4>"Won't a smarter / safety-tuned model just refuse?"</h4>
 <p>No - and you saw why. A model can't reliably separate data from instructions, and
@@ -833,15 +860,10 @@ a doc, email, ticket, or web page, the attack is zero-click (see EchoLeak).</p>
 as the boundary. The boundary is authorization + out-of-band approval for irreversible
 actions.</p>
 
-<h4>"Is the lab's scripted attacker cheating?"</h4>
-<p>It's deterministic so the walkthrough reproduces with no API key, but it isn't doing
-anything a real model won't: run <code>--real</code> and a live Claude is steered the
-same way, and plays the fooled judge itself. The vulnerability lives in the harness, not
-in any particular model.</p>
-
 <h2 id="refs">References</h2>
 <ul class="foot">
-  <li>LLM Threat Coverage Atlas - <a href="https://mr-akuma.github.io/llm-threat-model-full-267-bubble-atlas.html">the 480-vector map this is built against</a>.</li>
+  <li>The lab - <a href="https://github.com/Mr-Akuma/llm-incident-lab">github.com/Mr-Akuma/llm-incident-lab</a>: every command, diagram, and terminal capture in this post is reproducible from this repo (<code>git clone</code>, then <code>python run_incident.py</code>).</li>
+  <li>LLM Threat Coverage Atlas - <a href="https://mr-akuma.github.io/llm-threat-model-full-267-bubble-atlas.html">the 267-node map (480 vectors across its domains) I built this lab against</a>. Full disclosure: this is my own framework; the Atlas domain labels (D, E, F, N) used throughout are its taxonomy.</li>
   <li>OWASP Top 10 for LLM Applications (2025) - LLM01 Prompt Injection, LLM06 Excessive Agency.</li>
   <li>MITRE ATLAS - AML.T0051 (LLM Prompt Injection), AML.T0053 (LLM Plugin Compromise); MITRE ATT&amp;CK T1548 / T1078 / T1485 / T1531 / T1562.</li>
   <li>Simon Willison - "prompt injection", the "lethal trifecta", and the dual-LLM pattern (simonwillison.net).</li>

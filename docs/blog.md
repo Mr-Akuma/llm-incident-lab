@@ -12,7 +12,7 @@
 > and the same instruction fooled the approval AI. The bug isn't the model; it's the
 > **harness** trusting model output and an injectable judge. The fix: authorization the
 > model can't influence + out-of-band human approval for irreversible actions. It's all
-> a runnable lab.
+> a runnable lab: **[github.com/Mr-Akuma/llm-incident-lab](https://github.com/Mr-Akuma/llm-incident-lab)**.
 >
 > **Who this is for:** engineers building LLM agents, AppSec/red teams reviewing them,
 > and anyone wiring an AI to tools that can change real state.
@@ -95,7 +95,8 @@ A production secret is now attacker-controlled and a *different tenant's* databa
 
 ![Sequence diagram](./img/sequence.png)
 
-Run it: `python run_incident.py`. Prove it's the harness, not the model:
+Get it and run it: `git clone https://github.com/Mr-Akuma/llm-incident-lab && cd
+llm-incident-lab && python run_incident.py`. Prove it's the harness, not the model:
 `python run_incident.py --real` (a live Claude is steered the same way and plays the
 fooled judge itself).
 
@@ -235,6 +236,7 @@ attacker cheating?** Run `--real`; a live Claude is steered the same way.
 
 ## References
 
+The lab (all of this is reproducible): **github.com/Mr-Akuma/llm-incident-lab** ·
 LLM Threat Coverage Atlas · OWASP Top 10 for LLM Apps (2025: LLM01, LLM06) · MITRE ATLAS
 (AML.T0051, AML.T0053) + ATT&CK (T1548/T1078/T1485/T1531/T1562) · Simon Willison (prompt
 injection, lethal trifecta, dual-LLM) · AgentDojo (ETH Zürich, 2024) · Spotlighting
